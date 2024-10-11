@@ -164,9 +164,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
         definition = definition.replace(
           /^ENUM\(.+\)/,
-          this.pgEnumName(tableName, attributeName, { schema: false }),
+          this.pgEnumName(tableName, attributeName, attributes[attributeName], { schema: false }),
         );
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName, attributes[attributeName], {})})`;
       }
 
       if (/UNIQUE;*$/.test(definition)) {
@@ -499,8 +499,15 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, columnName, options = {}) {
+  pgEnumName(tableName, columnName, dataType, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
+    console.log(
+      'tableDetails',
+      JSON.stringify(tableDetails),
+      'dataType',
+      dataType,
+      JSON.stringify(dataType),
+    );
 
     const enumName = `enum_${tableDetails.tableName}_${columnName}`;
     if (options.noEscape) {
@@ -516,7 +523,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return escapedEnumName;
   }
 
-  pgListEnums(tableName, attrName, options) {
+  pgListEnums(tableName, attrName, dataType, options) {
     let enumName = '';
     const tableDetails =
       tableName != null
@@ -525,7 +532,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (tableDetails.tableName && attrName) {
       // pgEnumName escapes as an identifier, we want to escape it as a string
-      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, attrName, { noEscape: true }))}`;
+      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, attrName, dataType, { noEscape: true }))}`;
     }
 
     return (
@@ -537,7 +544,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEnum(tableName, attr, dataType, options) {
-    const enumName = this.pgEnumName(tableName, attr, options);
+    const enumName = this.pgEnumName(tableName, attr, dataType, options);
     let values;
 
     if (dataType instanceof ENUM && dataType.options.values) {
@@ -617,7 +624,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (dataType.startsWith('ENUM(')) {
-      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
+      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr, dataType));
     }
 
     return dataType;
