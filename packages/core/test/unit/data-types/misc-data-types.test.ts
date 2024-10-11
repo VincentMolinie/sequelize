@@ -68,7 +68,7 @@ describe('DataTypes.ENUM', () => {
     }
 
     const User = sequelize.define('User', {
-      enum1: DataTypes.ENUM({ values: Test }),
+      enum1: DataTypes.ENUM({ values: Test, name: 'TestEnumYeah' }),
       enum2: DataTypes.ENUM(Test),
     });
 

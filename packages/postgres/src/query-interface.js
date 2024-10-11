@@ -33,7 +33,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         type instanceof DataTypes.ENUM ||
         (type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
-        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
+        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], type, options);
         promises.push(
           this.sequelize.queryRaw(sql, {
             ...options,
